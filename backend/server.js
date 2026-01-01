@@ -18,9 +18,6 @@ dotenv.config();
 connectDB();
 const PORT=process.env.PORT || 7892;
 
-app.listen(PORT,()=>{
-    console.log(`Server is running on port ${PORT}`);
-});
 
 app.get("/",(req,res)=>{
     res.send("Water Level Monitoring Backend is running");
@@ -29,3 +26,7 @@ app.get("/",(req,res)=>{
 // register route
 app.use("/esp-ack", espAckRoute);
 
+
+app.listen(PORT,()=>{
+    console.log(`Server is running on port ${PORT}`);
+});
