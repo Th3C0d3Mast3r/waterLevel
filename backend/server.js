@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import {connectDB} from "./src/db/database.js";
 import configureRouter from "./src/routes/esp-ack.js";
 import espAckRoute from "./src/routes/esp-ack.js";
+import pumpRoute from "./src/routes/pump.js";
 
 
 const app=express();
@@ -25,6 +26,9 @@ app.get("/",(req,res)=>{
 
 // register route
 app.use("/esp-ack", espAckRoute);
+
+app.use("/pump", pumpRoute);
+
 
 
 app.listen(PORT,()=>{

@@ -56,7 +56,9 @@ export function EventHistory({ events }: EventHistoryProps) {
                       </Badge>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(event.timestamp, { addSuffix: true })}
+                      {event.createdAt
+                        ? formatDistanceToNow(new Date(event.createdAt), { addSuffix: true })
+                        : "Unknown time"}
                     </p>
                   </div>
                 </div>

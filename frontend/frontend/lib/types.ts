@@ -1,10 +1,12 @@
 export interface PumpEvent {
-  id: string
-  timestamp: Date
-  type: "ON" | "OFF"
-  waterLevel: number
-  duration?: number // in minutes
-  initiatedBy: "sensor" | "manual"
+  id: string;
+  type: "ON" | "OFF";  // match 'state'
+  initiatedBy: "sensor" | "manual" | "frontend"; // match 'source'
+  waterLevel: number;
+  duration?: number | null;
+  note?: string;
+  createdAt: string | Date;   // added this
+  updatedAt: string | Date;   // optional
 }
 
 export interface DashboardStats {

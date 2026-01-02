@@ -7,6 +7,7 @@ import { AnalyticsSection } from "@/components/analytics-section"
 import { EventHistory } from "@/components/event-history"
 import { generateMockEvents, generateChartData } from "@/lib/mock-data"
 import type { PumpEvent, ChartData } from "@/lib/types"
+import { EventHistoryContainer } from "@/components/eventHistoryContainer"
 
 export default function DashboardPage() {
   const [events, setEvents] = useState<PumpEvent[]>([])
@@ -90,7 +91,7 @@ export default function DashboardPage() {
 
           {/* Event History */}
           <section>
-            <EventHistory events={events} />
+            <EventHistoryContainer />
           </section>
         </div>
       </main>
