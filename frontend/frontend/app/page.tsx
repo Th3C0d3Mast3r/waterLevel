@@ -14,9 +14,36 @@ export default function DashboardPage() {
   const [chartData,setChartData]=useState<ChartData[]>([])
   const [isLoading,setIsLoading]=useState(true)
 
-  // NEW: real water level states
+  // real water level states
   const [currentWaterLevel,setCurrentWaterLevel]=useState<number|null>(null)
   const [isFetchingWater,setIsFetchingWater]=useState(true)
+
+  // real daily toggles
+  const [dailyStats, setDailyStats] = useState<{
+    totalEvents: number
+    onEvents: number
+    offEvents: number
+  } | null>(null)
+
+  // for the same daily toggles, this is the useEffect
+  useEffect(() => {
+  const fetchDailyEvents = async () => {
+    try {
+      const res = await fetch("http://localhost:8808/pump/dailyEvents")
+      if (!res.ok) throw new Error("Failed")
+
+      const data = await res.json()
+      setDailyStats(data)
+    } catch (err) {
+      console.error("Daily events fetch failed", err)
+    }
+  }
+
+  fetchDailyEvents()
+  const interval = setInterval(fetchDailyEvents, 60_000) // refresh every minute
+  return () => clearInterval(interval)
+}, [])
+
 
   // mock data loading (unchanged)
   useEffect(()=>{
@@ -33,7 +60,7 @@ export default function DashboardPage() {
   useEffect(()=>{
     const fetchWaterLevel=async()=>{
       try{
-        const res=await fetch("http://localhost:8808/water-level")
+        const res=await fetch("http://localhost:8808/waterLevel")
         if(!res.ok) throw new Error("Backend not reachable")
 
         const data=await res.json()
@@ -129,14 +156,17 @@ export default function DashboardPage() {
                 <p className="text-sm text-muted-foreground">
                   Total Events Today
                 </p>
+
                 <p className="text-3xl font-bold text-primary">
-                  {events.length}
+                  {dailyStats ? dailyStats.totalEvents : "--"}
                 </p>
+
                 <p className="text-xs text-muted-foreground">
-                  {events.filter(e=>e.type==="ON").length} cycles •{" "}
-                  {events.filter(e=>e.type==="OFF").length} stops
+                  {dailyStats ? dailyStats.onEvents : 0} cycles •{" "}
+                  {dailyStats ? dailyStats.offEvents : 0} stops
                 </p>
               </div>
+
             </div>
           </section>
 

@@ -1,20 +1,32 @@
-import express from 'express';
-const router=express.Router();
+import express from "express";
+const router = express.Router();
 
-router.post("/",(req,res)=>{
-  const {distance,ip}=req.body;
+// SHARED STATE
+export const waterLevelState = {
+  distance: null,
+  unit: "cm",
+  lastUpdated: null,
+  ip: null
+}
 
-  espStatus.isConnected=true;
-  espStatus.lastSeen=Date.now();
-  espStatus.ipAddress=ip;
-  espStatus.level=distance;
+// ESP sends water level
+router.post("/", (req, res) => {
+  const { distance, ip } = req.body;
 
-  res.status(200).json({ok:true});
+  if (typeof distance !== "number") {
+    return res.status(400).json({ error: "Invalid distance" });
+  }
+
+  waterLevelState.distance = distance;
+  waterLevelState.lastUpdated = Date.now();
+  waterLevelState.ip = ip;
+
+  return res.status(200).json({ ok: true });
 });
 
-// Frontend fetches latest water level
+// Frontend fetches water level
 router.get("/", (req, res) => {
-  res.status(200).json(waterLevelState);
+  return res.status(200).json(waterLevelState);
 });
 
 export default router;

@@ -1,46 +1,81 @@
 import express from 'express';
 import pumpActivityModel from '../model/pumpActivity.model.js';
-const router = express.Router();
+import { waterLevelState } from './waterLevel.js'
 
-let currentState="OFF";
+const router = express.Router()
 
+let currentState = "OFF"
 
-// see the status of the pump, whether  its on or off
-router.get("/status", async(req, res)=>{
-    res.status(200).json({state:currentState});
-});
+// GET pump status
+router.get("/status", (req, res) => {
+  res.status(200).json({
+    state: currentState
+  })
+})
 
+// TOGGLE pump (MANUAL / ESP)
+router.post("/toggle", async (req, res) => {
+  try {
+    const { state, source, note } = req.body
 
-// toggle the pump's state
-router.post("/toggle", async(req, res)=>{
-    try{
-        const {state, source, note}=req.body;
-        
-        if(!state || !source){
-            return res.status(401).json({message:"State and Source are REQUIRED fields"});
-        }
-        if (!["ON", "OFF"].includes(state)) {
-            return res.status(400).json({ error: "Invalid state" });
-        }
-
-        if (!["MANUAL", "ESP", "AUTO"].includes(source)) {
-            return res.status(400).json({ error: "Invalid source" });
-        }
-
-        currentState=state;
-        await pumpActivityModel.create({state, source, note});
-        return res.status(200).json({message: "Pump state Updated- "+state});
+    if (!state || !source) {
+      return res.status(400).json({ message: "State and Source required" })
     }
-    catch(error){
-        res.status(500).json({message: "Something went wrong", error:error.message});
-        return
+
+    if (!["ON", "OFF"].includes(state)) {
+      return res.status(400).json({ error: "Invalid state" })
     }
-});
 
-// for the below dashboard, where all this is needed-we have this present
-router.get("/activity", async (req, res)=>{
-    const logs = await pumpActivityModel.find().sort({ timestamp: -1 }).limit(50);
-    res.json(logs);
-});
+    if (!["MANUAL", "ESP", "AUTO"].includes(source)) {
+      return res.status(400).json({ error: "Invalid source" })
+    }
 
-export default router;
+    currentState = state
+
+    await pumpActivityModel.create({
+      state,
+      source,
+      note,
+      waterLevel: waterLevelState.distance ?? 0 // ✅ FIX
+    })
+
+    res.status(200).json({ state })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
+})
+
+// ACTIVITY LOG
+router.get("/activity", async (req, res) => {
+  const logs = await pumpActivityModel
+    .find()
+    .sort({ createdAt: -1 })
+    .limit(50)
+
+  res.json(logs)
+})
+
+// DAILY EVENTS
+router.get("/dailyEvents", async (req, res) => {
+  try {
+    const start = new Date()
+    start.setHours(0, 0, 0, 0)
+
+    const end = new Date()
+    end.setHours(23, 59, 59, 999)
+
+    const events = await pumpActivityModel.find({
+      createdAt: { $gte: start, $lte: end }
+    })
+
+    res.json({
+      totalEvents: events.length,
+      onEvents: events.filter(e => e.state === "ON").length,
+      offEvents: events.filter(e => e.state === "OFF").length
+    })
+  } catch {
+    res.status(500).json({ error: "Failed to fetch daily events" })
+  }
+})
+
+export default router
