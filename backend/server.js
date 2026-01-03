@@ -9,6 +9,7 @@ import configureRouter from "./src/routes/esp-ack.js";
 import espAckRoute from "./src/routes/esp-ack.js";
 import pumpRoute from "./src/routes/pump.js";
 import waterLevelRoute from "./src/routes/waterLevel.js";
+import analyticsRoute from "./src/routes/analytics.js";
 
 
 const app=express();
@@ -33,6 +34,9 @@ app.use("/pump", pumpRoute);
 
 // constant water level measurement route
 app.use("/waterLevel", waterLevelRoute)
+
+// this is the route that I use for the graphs and stuff
+app.use("/analytics", analyticsRoute);
 
 app.listen(PORT,()=>{
     console.log(`Server is running on port ${PORT}`);

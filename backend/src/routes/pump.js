@@ -14,34 +14,54 @@ router.get("/status", (req, res) => {
 })
 
 // TOGGLE pump (MANUAL / ESP)
-router.post("/toggle", async (req, res) => {
-  try {
-    const { state, source, note } = req.body
+router.post("/toggle",async(req,res)=>{
+  try{
+    const {state,source,note}=req.body
 
-    if (!state || !source) {
-      return res.status(400).json({ message: "State and Source required" })
+    if(!state||!source){
+      return res.status(400).json({message:"State and Source required"})
     }
 
-    if (!["ON", "OFF"].includes(state)) {
-      return res.status(400).json({ error: "Invalid state" })
+    if(!["ON","OFF"].includes(state)){
+      return res.status(400).json({error:"Invalid state"})
     }
 
-    if (!["MANUAL", "ESP", "AUTO"].includes(source)) {
-      return res.status(400).json({ error: "Invalid source" })
+    if(!["MANUAL","ESP","AUTO"].includes(source)){
+      return res.status(400).json({error:"Invalid source"})
     }
 
-    currentState = state
+    const now=new Date()
+    currentState=state
+
+    if(state==="OFF"){
+      const lastOn=await pumpActivityModel.findOne({
+        state:"ON",
+        duration:null
+      }).sort({createdAt:-1})
+
+      if(lastOn){
+        const durationMinutes=Math.round(
+          (now-lastOn.createdAt)/(1000*60)
+        )
+
+        await pumpActivityModel.findByIdAndUpdate(
+          lastOn._id,
+          {duration:durationMinutes}
+        )
+      }
+    }
 
     await pumpActivityModel.create({
       state,
       source,
       note,
-      waterLevel: waterLevelState.distance ?? 0 // ✅ FIX
+      waterLevel:waterLevelState.distance??0,
+      lastToggleTime:now
     })
 
-    res.status(200).json({ state })
-  } catch (err) {
-    res.status(500).json({ error: err.message })
+    res.status(200).json({state})
+  }catch(err){
+    res.status(500).json({error:err.message})
   }
 })
 

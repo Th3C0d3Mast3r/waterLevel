@@ -20,9 +20,19 @@ interface AnalyticsSectionProps {
 }
 
 export function AnalyticsSection({ data }: AnalyticsSectionProps) {
-  const totalCycles = data.reduce((sum, item) => sum + item.cycles, 0)
-  const avgDuration = Math.round(data.reduce((sum, item) => sum + item.avgDuration, 0) / data.length)
-  const avgWaterLevel = Math.round(data.reduce((sum, item) => sum + item.waterLevel, 0) / data.length)
+  const hasData = data.length > 0
+
+  const totalCycles = hasData
+    ? data.reduce((sum, item) => sum + item.cycles, 0)
+    : 0
+
+  const avgDuration = hasData
+    ? Math.round(data.reduce((sum, item) => sum + item.avgDuration, 0) / data.length)
+    : 0
+
+  const avgWaterLevel = hasData
+    ? Math.round(data.reduce((sum, item) => sum + item.waterLevel, 0) / data.length)
+    : 0
 
   const stats = [
     { label: "Total Cycles (24h)", value: totalCycles, unit: "" },
@@ -40,8 +50,10 @@ export function AnalyticsSection({ data }: AnalyticsSectionProps) {
               <div className="space-y-1">
                 <p className="text-sm text-muted-foreground">{stat.label}</p>
                 <p className="text-3xl font-bold text-primary">
-                  {stat.value}
-                  <span className="text-lg ml-1 text-muted-foreground">{stat.unit}</span>
+                  {hasData ? stat.value : "—"}
+                  <span className="text-lg ml-1 text-muted-foreground">
+                    {hasData ? stat.unit : ""}
+                  </span>
                 </p>
               </div>
             </CardContent>
@@ -57,22 +69,21 @@ export function AnalyticsSection({ data }: AnalyticsSectionProps) {
             <CardDescription>24-hour cycle frequency</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis dataKey="time" stroke="var(--color-muted-foreground)" style={{ fontSize: "12px" }} />
-                <YAxis stroke="var(--color-muted-foreground)" style={{ fontSize: "12px" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "var(--color-card)",
-                    border: "1px solid var(--color-border)",
-                    borderRadius: "8px",
-                  }}
-                  labelStyle={{ color: "var(--color-foreground)" }}
-                />
-                <Bar dataKey="cycles" fill="var(--color-chart-1)" radius={[8, 8, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            {hasData ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <XAxis dataKey="time" stroke="var(--color-muted-foreground)" style={{ fontSize: "12px" }} />
+                  <YAxis stroke="var(--color-muted-foreground)" style={{ fontSize: "12px" }} />
+                  <Tooltip />
+                  <Bar dataKey="cycles" fill="var(--color-chart-1)" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-16">
+                No pump activity recorded yet
+              </p>
+            )}
           </CardContent>
         </Card>
 
@@ -82,41 +93,41 @@ export function AnalyticsSection({ data }: AnalyticsSectionProps) {
             <CardDescription>Average metrics per time period</CardDescription>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-                <XAxis dataKey="time" stroke="var(--color-muted-foreground)" style={{ fontSize: "12px" }} />
-                <YAxis stroke="var(--color-muted-foreground)" style={{ fontSize: "12px" }} />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "var(--color-card)",
-                    border: "1px solid var(--color-border)",
-                    borderRadius: "8px",
-                  }}
-                  labelStyle={{ color: "var(--color-foreground)" }}
-                />
-                <Legend />
-                <Line
-                  type="monotone"
-                  dataKey="avgDuration"
-                  stroke="var(--color-chart-1)"
-                  dot={false}
-                  strokeWidth={2}
-                  name="Duration (min)"
-                />
-                <Line
-                  type="monotone"
-                  dataKey="waterLevel"
-                  stroke="var(--color-chart-2)"
-                  dot={false}
-                  strokeWidth={2}
-                  name="Water Level (cm)"
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {hasData ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                  <XAxis dataKey="time" stroke="var(--color-muted-foreground)" style={{ fontSize: "12px" }} />
+                  <YAxis stroke="var(--color-muted-foreground)" style={{ fontSize: "12px" }} />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="avgDuration"
+                    stroke="var(--color-chart-1)"
+                    dot={false}
+                    strokeWidth={2}
+                    name="Duration (min)"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="waterLevel"
+                    stroke="var(--color-chart-2)"
+                    dot={false}
+                    strokeWidth={2}
+                    name="Water Level (cm)"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-16">
+                Waiting for analytics data
+              </p>
+            )}
           </CardContent>
         </Card>
       </div>
     </div>
   )
 }
+export default AnalyticsSection
