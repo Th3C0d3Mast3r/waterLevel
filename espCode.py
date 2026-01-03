@@ -1,93 +1,120 @@
 import network
-import urequests  # Use urequests for HTTP POST to PC
-from machine import Pin, time_pulse_us
-from time import sleep, time
+import urequests
+from machine import Pin,time_pulse_us
+from time import sleep,time
 
-# === Wi-Fi Credentials ===
-SSID = "*******"
-PASSWORD = "*******"
+# ================= WIFI =================
+SSID="*******"
+PASSWORD="*******"
 
-# === PC Info ===
-PC_IP = "192.168.1.16"  # Replace with your PC IP
-PC_PORT = 8808            # Dashboard port where /esp-ack endpoint is listening
+# ================= PC / BACKEND =================
+PC_IP="192.168.1.16"     # your PC LAN IP
+PC_PORT=8808
 
-# === Ultrasonic Sensor Pins ===
-trig = Pin(23, Pin.OUT)
-echo = Pin(22, Pin.IN)
+# ================= ULTRASONIC =================
+trig=Pin(23,Pin.OUT)
+echo=Pin(22,Pin.IN)
 
-# === Pump Control Pin ===
-pump = Pin(21, Pin.OUT)
-pump.value(0)  # Start off
+# ================= PUMP =================
+pump=Pin(21,Pin.OUT)    # this is the switch that is for turning on/off the pump
+pump.value(0)
 
-# === Connect to Wi-Fi ===
+# ================= WIFI CONNECT =================
 def connect_wifi():
-    wlan = network.WLAN(network.STA_IF)
+    wlan=network.WLAN(network.STA_IF)
     wlan.active(True)
-    print("Connecting to WiFi...")
-    wlan.connect(SSID, PASSWORD)
-    attempts = 0
+    wlan.connect(SSID,PASSWORD)
+
+    attempts=0
     while not wlan.isconnected():
         sleep(1)
-        attempts += 1
-        print("Waiting...", attempts)
-        if attempts > 15:
-            print("Failed to connect. Check SSID/Password/2.4GHz.")
+        attempts+=1
+        print("Connecting...",attempts)
+        if attempts>15:
             return None
-    ip = wlan.ifconfig()[0]
-    print("Connected! IP:", ip)
-    return ip
 
-# === Ultrasonic Distance Function ===
+    print("Connected:",wlan.ifconfig()[0])
+    return wlan
+
+# ================= ULTRASONIC READ =================
 def getDistance():
     trig.value(0)
     sleep(0.002)
     trig.value(1)
     sleep(0.00001)
     trig.value(0)
-    duration = time_pulse_us(echo, 1, 25000)  # 25ms max
-    distance = (duration * 0.0343) / 2
-    return distance
 
-# === Send ACK to PC ===
-def send_ack():
+    duration=time_pulse_us(echo,1,25000)
+    if duration<0:
+        return None
+
+    return (duration*0.0343)/2
+
+# ================= ESP ACK =================
+def send_ack(wlan):
     try:
-        url = f"http://{PC_IP}:{PC_PORT}/esp-ack"
-        payload={"ip":wlan.ifconfig()[0]}
-        res = urequests.post(url, json=payload)
+        url=f"http://{PC_IP}:{PC_PORT}/esp-ack"
+        payload={
+            "ip":wlan.ifconfig()[0],
+            "device":"ESP32",
+            "ts":time()
+        }
+        headers={"Content-Type":"application/json"}
+
+        res=urequests.post(url,json=payload,headers=headers)
         res.close()
-        print("ACK sent to PC")
+        print("ESP ACK sent")
     except Exception as e:
-        print("Failed to send ACK:", e)
+        print("ACK failed:",e)
 
-# === Main Loop ===
-wlan = network.WLAN(network.STA_IF)
-ip = connect_wifi()
-if ip is None:
-    raise SystemExit("WiFi connection failed")
+# ================= WATER LEVEL =================
+def send_water_level(wlan,distance):
+    try:
+        url=f"http://{PC_IP}:{PC_PORT}/waterLevel"
+        payload={
+            "distance":round(distance,2),
+            "ip":wlan.ifconfig()[0],
+            "unit":"cm",
+            "ts":time()
+        }
+        headers={"Content-Type":"application/json"}
 
-# Send an initial ACK after connecting
-send_ack()
+        res=urequests.post(url,json=payload,headers=headers)
+        res.close()
+        print("Water level sent:",distance)
+    except Exception as e:
+        print("Water level send failed:",e)
+
+# ================= MAIN =================
+wlan=connect_wifi()
+if wlan is None:
+    raise SystemExit("WiFi failed")
+
+# Initial ACK
+send_ack(wlan)
+
+last_ack=time()
 
 while True:
     try:
-        # Measure distance
-        distance = getDistance()
-        print("Distance:", round(distance, 2), "cm")
+        distance=getDistance()
 
-        # Example: if distance < threshold, turn pump ON
-        # You can replace with your own logic
-        if distance < 10:
-            pump.value(1)
-        else:
-            pump.value(0)
+        if distance is not None:
+            # Pump logic (example)
+            if distance<10:
+                pump.value(1)
+            else:
+                pump.value(0)
 
-        # Periodically send ACK to PC (every 10s)
-        send_ack()
+            send_water_level(wlan,distance)
 
-        sleep(10)
+        # Send ACK every 10 seconds
+        if time()-last_ack>10:
+            send_ack(wlan)
+            last_ack=time()
+
+        sleep(2)
+
     except Exception as e:
-        print("Error in main loop:", e)
+        print("Loop error:",e)
         sleep(5)
-
-
-# THIS CODE IS SUBJECT TO CHANGE

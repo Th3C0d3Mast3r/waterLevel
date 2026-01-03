@@ -8,6 +8,7 @@ import {connectDB} from "./src/db/database.js";
 import configureRouter from "./src/routes/esp-ack.js";
 import espAckRoute from "./src/routes/esp-ack.js";
 import pumpRoute from "./src/routes/pump.js";
+import waterLevelRoute from "./src/routes/waterLevel.js";
 
 
 const app=express();
@@ -27,9 +28,11 @@ app.get("/",(req,res)=>{
 // register route
 app.use("/esp-ack", espAckRoute);
 
+// pump based activities in the DB
 app.use("/pump", pumpRoute);
 
-
+// constant water level measurement route
+app.use("/waterLevel", waterLevelRoute)
 
 app.listen(PORT,()=>{
     console.log(`Server is running on port ${PORT}`);
