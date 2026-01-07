@@ -44,3 +44,6 @@ jobs:
         run: |
           cd tests
           python tester.py
+        env:
+          BASE_URL: "http://localhost:8808"
+          MONGO_URI: "mongodb://localhost:27017/waterlevel"
