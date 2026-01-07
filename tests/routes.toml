@@ -1,0 +1,66 @@
+# Used by CI/CD to validate backend routes
+# Base URL is assumed as: http://localhost:8808
+
+# [[route]]
+# name = "Pump status"
+# method = "GET"
+# url = "/pump/status"
+# expected_status = 200
+
+
+[[route]]
+name = "Toggle State of Pump (MANUAL OFF)"
+method = "POST"
+url = "/pump/toggle"
+expected_status = 200
+
+[route.headers]
+Content-Type = "application/json"
+
+[route.body]
+state = "OFF"
+source = "MANUAL"
+note = "TESTING FROM CI"
+waterLevel = 10
+
+
+[[route]]
+name = "Pump activity log"
+method = "GET"
+url = "/pump/activity"
+expected_status = 200
+
+
+[[route]]
+name = "Daily pump events summary"
+method = "GET"
+url = "/pump/dailyEvents"
+expected_status = 200
+
+
+[[route]]
+name = "Water level update from ESP"
+method = "POST"
+url = "/waterLevel"
+expected_status = 200
+
+[route.headers]
+Content-Type = "application/json"
+
+[route.body]
+distance = 5
+ip = "192.168.2.5"
+
+
+[[route]]
+name = "Fetch current water level"
+method = "GET"
+url = "/waterLevel"
+expected_status = 200
+
+
+[[route]]
+name = "Daily analytics data (graphs)"
+method = "GET"
+url = "/analytics/daily"
+expected_status = 200

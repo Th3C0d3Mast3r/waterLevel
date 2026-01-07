@@ -38,6 +38,6 @@ app.use("/waterLevel", waterLevelRoute)
 // this is the route that I use for the graphs and stuff
 app.use("/analytics", analyticsRoute);
 
-app.listen(PORT,()=>{
+app.listen(PORT, "0.0.0.0",()=>{
     console.log(`Server is running on port ${PORT}`);
 });
