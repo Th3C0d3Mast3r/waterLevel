@@ -10,17 +10,6 @@ jobs:
   test-backend:
     runs-on: ubuntu-latest
 
-    services:
-      mongodb:
-        image: mongo:6.0
-        ports:
-          - 27017:27017
-        options: >-
-          --health-cmd "mongo --eval 'db.adminCommand(\"ping\")'" 
-          --health-interval 10s 
-          --health-timeout 5s 
-          --health-retries 5
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -37,7 +26,7 @@ jobs:
       - name: Set environment variables
         run: |
           echo "PORT=8808" >> $GITHUB_ENV
-          echo "MONGO_URI=mongodb://localhost:27017/testdb" >> $GITHUB_ENV
+          echo "MOCK_MODE=true" >> $GITHUB_ENV
 
       - name: Start backend server
         working-directory: backend
@@ -58,3 +47,6 @@ jobs:
       - name: Run backend route tests
         working-directory: tests
         run: python tester.py
+      
+      - name: Stop backend server
+        run: pkill -f "nodemon server.js" || true

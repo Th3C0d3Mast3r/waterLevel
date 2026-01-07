@@ -1,11 +1,8 @@
-import axios from "axios";
-import mongoose from "mongoose";
 import express from "express";
 import cors from "cors";
 import bodyParser from "body-parser";
 import dotenv from "dotenv";
 import {connectDB} from "./src/db/database.js";
-import configureRouter from "./src/routes/esp-ack.js";
 import espAckRoute from "./src/routes/esp-ack.js";
 import pumpRoute from "./src/routes/pump.js";
 import waterLevelRoute from "./src/routes/waterLevel.js";
@@ -19,7 +16,7 @@ app.use(bodyParser.json());
 dotenv.config();
 
 connectDB();
-const PORT=process.env.PORT || 7892;
+const PORT=process.env.PORT || 8808;
 
 
 app.get("/",(req,res)=>{
