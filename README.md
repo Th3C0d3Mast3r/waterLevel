@@ -1,4 +1,4 @@
-![Backend Routes](https://img.shields.io/github/workflow/status/Th3C0d3Mast3r/waterLevel/Backend%20Routes%20Tests?label=Backend%20Routes&logo=github&style=for-the-badge) ![OS: Ubuntu](https://img.shields.io/badge/OS-Ubuntu-orange?logo=ubuntu&logoColor=white) ![Last Commit](https://img.shields.io/github/last-commit/Th3C0d3Mast3r/waterLevel) ![Latest Version](https://img.shields.io/github/v/tag/Th3C0d3Mast3r/waterLevel?label=version)
+![Script Test](https://img.shields.io/github/actions/workflow/status/waterLevel/api-checks.yaml?branch=main&label=SCRIPT%20STATUS&logo=github) ![OS: Ubuntu](https://img.shields.io/badge/OS-Ubuntu-orange?logo=ubuntu&logoColor=white) ![Last Commit](https://img.shields.io/github/last-commit/Th3C0d3Mast3r/waterLevel) ![Latest Version](https://img.shields.io/github/v/tag/Th3C0d3Mast3r/waterLevel?label=version)
 # FlowGuard - Monitor water. Control flow.
 ![dashboard image](./assets/dashboard.png)
 
